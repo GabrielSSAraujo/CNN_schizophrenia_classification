@@ -32,10 +32,12 @@ print('Iniciando Modelo Baseado na FayNet....')
 #----------- DEFINIÇÃO DIRETÓRIOS -----------
 data_dir = 'insert your path here'
 
-image_size = (229,220)
 heightImage = 229
 widthImage = 220
-batch_size = 8
+
+image_size = (heightImage,widthImage)
+batch_size = 90
+epoca = 200
 
 #-------------- SEPARANDO DADOS PARA TREINAMENTO, VALIDAÇÂO E TESTE -----------------
 train_ds = tf.keras.preprocessing.image_dataset_from_directory(
@@ -93,6 +95,7 @@ for images, labels in train_ds:
       Train_images.append(images[i])
       Train_labels.append(labels[i])
 t_images = np.array(Train_images)
+t_images = T_images.reshape(t_images.shape[0],heightImage,widthImage,1)
 t_labels = np.array(Train_labels)
 t_labels = t_labels.reshape(t_labels.shape[0],)
 
@@ -105,18 +108,16 @@ for images, labels in test_ds:
       Test_images.append(images[i])
       Test_labels.append(labels[i])
 te_images = np.array(Test_images)
+te_images = te_images.reshape(te_images.shape[0],heightImage,widthImage,1)
 te_labels = np.array(Test_labels)
 te_labels = te_labels.reshape(te_labels.shape[0],)
 
 (train_images,train_labels), (test_images,test_labels) = (t_images,t_labels),(te_images,te_labels)
 
-train_images = train_images.reshape((t_images.shape[0], heightImage, widthImage, 1))
 train_images = train_images.astype('float32') / 255
-
-test_images = test_images.reshape((te_images.shape[0], heightImage, widthImage, 1))
-test_images = test_images.astype('float32') / 255
-
 train_labels = to_categorical(train_labels)
+
+test_images = test_images.astype('float32') / 255
 test_labels = to_categorical(test_labels)
 
 inputs = np.concatenate((train_images, test_images), axis=0)
@@ -153,7 +154,7 @@ for train, test in kfold.split(inputs, targets):
    
     #-------------- TREINAMENTO DO MODELO -------------------------
     model.compile(loss='BinaryCrossentropy',optimizer=rms,metrics =['accuracy'])#['accuracy']
-    history = model.fit(train_images, train_labels, batch_size=90 , epochs=200, verbose=0 , validation_split = 0.3 ) # bat 10 com 200 epocas; verbose=1
+    history = model.fit(train_images, train_labels, batch_size=batch_size , epochs=epoca, verbose=0 , validation_split = 0.3 ) # bat 10 com 200 epocas; verbose=1
 
     plt.plot(history.history['accuracy'], label = 'Training', linewidth = 1.2)
     plt.plot(history.history['val_accuracy'], label = 'Validation', linewidth = 1.2)
